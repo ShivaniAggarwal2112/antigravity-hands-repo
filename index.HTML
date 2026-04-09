@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antigravity Hands ✦</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–neon-pink: #ff2d78;
+–neon-cyan: #00f5ff;
+–neon-green: #39ff14;
+–neon-purple: #bf00ff;
+–neon-yellow: #ffe000;
+–bg: #050510;
+}
+
+body {
+background: var(–bg);
+color: #fff;
+font-family: ‘Orbitron’, monospace;
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+overflow-x: hidden;
+}
+
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
+background-size: 40px 40px;
+z-index: 0;
+pointer-events: none;
+}
+
+header {
+position: relative;
+z-index: 10;
+text-align: center;
+padding: 2rem 1rem 1rem;
+}
+
+header h1 {
+font-size: clamp(1.4rem, 5vw, 2.8rem);
+font-weight: 900;
+letter-spacing: 0.08em;
+background: linear-gradient(135deg, var(–neon-cyan), var(–neon-pink), var(–neon-green));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+filter: drop-shadow(0 0 20px rgba(0,245,255,0.5));
+}
+
+header p {
+font-family: ‘Space Mono’, monospace;
+font-size: 0.7rem;
+color: rgba(0,245,255,0.6);
+margin-top: 0.4rem;
+letter-spacing: 0.15em;
+}
+
+.arena {
+position: relative;
+z-index: 10;
+width: min(640px, 96vw);
+margin: 1rem auto;
+}
+
+.video-wrap {
+position: relative;
+width: 100%;
+border-radius: 12px;
+overflow: hidden;
+border: 1px solid rgba(0,245,255,0.2);
+box-shadow:
+0 0 40px rgba(0,245,255,0.15),
+0 0 80px rgba(191,0,255,0.1),
+inset 0 0 30px rgba(0,0,0,0.8);
+aspect-ratio: 4/3;
+background: #000;
+}
+
+video {
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+object-fit: cover;
+transform: scaleX(-1);
+opacity: 0;
+}
+
+canvas#output {
+position: absolute;
+inset: 0;
+width: 100%;
+height: 100%;
+transform: scaleX(-1);
+}
+
+.overlay-text {
+position: absolute;
+top: 12px;
+left: 12px;
+font-family: ‘Space Mono’, monospace;
+font-size: 0.65rem;
+color: var(–neon-cyan);
+line-height: 1.6;
+letter-spacing: 0.05em;
+text-shadow: 0 0 8px var(–neon-cyan);
+z-index: 5;
+}
+
+.corner { position: absolute; width: 20px; height: 20px; z-index: 5; }
+.corner-tl { top: 8px; left: 8px; border-top: 2px solid var(–neon-cyan); border-left: 2px solid var(–neon-cyan); }
+.corner-tr { top: 8px; right: 8px; border-top: 2px solid var(–neon-cyan); border-right: 2px solid var(–neon-cyan); }
+.corner-bl { bottom: 8px; left: 8px; border-bottom: 2px solid var(–neon-cyan); border-left: 2px solid var(–neon-cyan); }
+.corner-br { bottom: 8px; right: 8px; border-bottom: 2px solid var(–neon-cyan); border-right: 2px solid var(–neon-cyan); }
+
+.controls {
+position: relative;
+z-index: 10;
+display: flex;
+flex-wrap: wrap;
+gap: 0.75rem;
+justify-content: center;
+margin: 1rem 0;
+}
+
+button {
+font-family: ‘Orbitron’, monospace;
+font-size: 0.7rem;
+font-weight: 700;
+letter-spacing: 0.1em;
+padding: 0.6rem 1.4rem;
+border-radius: 4px;
+border: 1px solid;
+cursor: pointer;
+transition: all 0.2s;
+text-transform: uppercase;
+background: transparent;
+}
+
+#startBtn {
+border-color: var(–neon-cyan);
+color: var(–neon-cyan);
+box-shadow: 0 0 15px rgba(0,245,255,0.3);
+}
+#startBtn:hover { background: rgba(0,245,255,0.1); box-shadow: 0 0 25px rgba(0,245,255,0.5); }
+#startBtn:disabled { opacity: 0.5; cursor: default; }
+
+.style-btn {
+border-color: rgba(255,255,255,0.2);
+color: rgba(255,255,255,0.5);
+font-size: 0.65rem;
+padding: 0.5rem 1rem;
+}
+.style-btn.active { border-color: var(–neon-pink); color: var(–neon-pink); box-shadow: 0 0 12px rgba(255,45,120,0.4); }
+.style-btn:hover { background: rgba(255,255,255,0.05); }
+
+.stats {
+position: relative;
+z-index: 10;
+font-family: ‘Space Mono’, monospace;
+font-size: 0.65rem;
+color: rgba(255,255,255,0.3);
+text-align: center;
+letter-spacing: 0.1em;
+margin-bottom: 1rem;
+}
+
+.status-dot {
+display: inline-block;
+width: 6px; height: 6px;
+border-radius: 50%;
+margin-right: 6px;
+background: #333;
+vertical-align: middle;
+transition: all 0.3s;
+}
+.status-dot.active { background: var(–neon-green); box-shadow: 0 0 6px var(–neon-green); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.info-grid {
+position: relative;
+z-index: 10;
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 0.75rem;
+width: min(640px, 96vw);
+margin: 0 auto 2rem;
+}
+
+.info-card {
+border: 1px solid rgba(255,255,255,0.08);
+border-radius: 8px;
+padding: 0.9rem 0.75rem;
+background: rgba(255,255,255,0.02);
+text-align: center;
+}
+.info-card .label {
+font-family: ‘Space Mono’, monospace;
+font-size: 0.55rem;
+letter-spacing: 0.15em;
+color: rgba(255,255,255,0.35);
+margin-bottom: 0.4rem;
+text-transform: uppercase;
+}
+.info-card .value { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; }
+.c1 { color: var(–neon-cyan); }
+.c2 { color: var(–neon-pink); }
+.c3 { color: var(–neon-green); }
+</style>
+
+</head>
+<body>
+
+<header>
+  <h1>✦ ANTIGRAVITY HANDS ✦</h1>
+  <p>REAL-TIME HAND LANDMARK VISUALIZER · MEDIAPIPE + CANVAS</p>
+</header>
+
+<div class="arena">
+  <div class="video-wrap">
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="output"></canvas>
+    <div class="overlay-text" id="overlayText">SYSTEM IDLE<br>PRESS START</div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="startBtn">⬡ ACTIVATE CAMERA</button>
+  <button class="style-btn active" onclick="setStyle('neon',this)">NEON</button>
+  <button class="style-btn" onclick="setStyle('rainbow',this)">RAINBOW</button>
+  <button class="style-btn" onclick="setStyle('cyber',this)">CYBER</button>
+  <button class="style-btn" onclick="setStyle('ghost',this)">GHOST</button>
+</div>
+
+<div class="stats">
+  <span class="status-dot" id="dot"></span>
+  <span id="statusText">CAMERA OFFLINE</span>
+  &nbsp;·&nbsp; HANDS: <span id="handCount">0</span>
+  &nbsp;·&nbsp; FPS: <span id="fpsDisplay">--</span>
+</div>
+
+<div class="info-grid">
+  <div class="info-card"><div class="label">LANDMARKS</div><div class="value c1">21 / HAND</div></div>
+  <div class="info-card"><div class="label">MODEL</div><div class="value c2">MEDIAPIPE</div></div>
+  <div class="info-card"><div class="label">PROCESSING</div><div class="value c3">IN-BROWSER</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('output');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('startBtn');
+const overlayText = document.getElementById('overlayText');
+const dot = document.getElementById('dot');
+const statusText = document.getElementById('statusText');
+const handCountEl = document.getElementById('handCount');
+const fpsEl = document.getElementById('fpsDisplay');
+
+let currentStyle = 'neon';
+let lastFrameTime = performance.now();
+let fps = 0;
+let cameraStarted = false;
+
+const CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[0,17],[17,18],[18,19],[19,20]
+];
+
+const STYLES = {
+  neon:    { connColors: ['#ff2d78','#00f5ff','#bf00ff','#39ff14','#ffe000'], pointColor: '#ffffff', glow: 18, lw: 2.5 },
+  rainbow: { connColors: null, pointColor: '#fff', glow: 14, lw: 2 },
+  cyber:   { connColors: ['#00f5ff'], pointColor: '#00f5ff', glow: 28, lw: 1.5 },
+  ghost:   { connColors: ['rgba(200,220,255,0.55)'], pointColor: 'rgba(255,255,255,0.85)', glow: 8, lw: 1.2 }
+};
+
+function setStyle(s, btn) {
+  currentStyle = s;
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+window.setStyle = setStyle;
+
+function getColor(style, i, total, t) {
+  if (style === 'rainbow') {
+    return `hsl(${((i/total)*360 + t*60)%360},100%,65%)`;
+  }
+  const c = STYLES[style].connColors;
+  return c[i % c.length];
+}
+
+function drawHand(lms, style, t) {
+  const s = STYLES[style];
+  const w = canvas.width, h = canvas.height;
+
+  CONNECTIONS.forEach(([a,b], i) => {
+    const x1=lms[a].x*w, y1=lms[a].y*h;
+    const x2=lms[b].x*w, y2=lms[b].y*h;
+    const col = getColor(style, i, CONNECTIONS.length, t);
+    ctx.save();
+    ctx.shadowColor = col;
+    ctx.shadowBlur = s.glow;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = s.lw;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.globalAlpha = 0.4;
+    ctx.shadowBlur = s.glow * 0.4;
+    ctx.lineWidth = s.lw * 0.5;
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  lms.forEach((lm, i) => {
+    const x=lm.x*w, y=lm.y*h;
+    const r = [0,5,9,13,17].includes(i) ? 5 : 3;
+    ctx.save();
+    ctx.shadowColor = s.pointColor;
+    ctx.shadowBlur = 16;
+    ctx.fillStyle = s.pointColor;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  });
+}
+
+function onResults(results) {
+  const now = performance.now();
+  fps = Math.round(1000 / (now - lastFrameTime));
+  lastFrameTime = now;
+  fpsEl.textContent = fps;
+
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  ctx.fillStyle = 'rgba(5,5,16,0.5)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  const hands = results.multiHandLandmarks || [];
+  handCountEl.textContent = hands.length;
+
+  const t = now / 1000;
+  hands.forEach(lms => drawHand(lms, currentStyle, t));
+
+  overlayText.innerHTML = `HANDS: ${hands.length} &nbsp;·&nbsp; FPS: ${fps}`;
+}
+
+async function startCamera() {
+  if (cameraStarted) return;
+  cameraStarted = true;
+  startBtn.textContent = '⬡ LOADING...';
+  startBtn.disabled = true;
+
+  try {
+    const hands = new Hands({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`
+    });
+    hands.setOptions({ maxNumHands:2, modelComplexity:1, minDetectionConfidence:0.7, minTrackingConfidence:0.6 });
+    hands.onResults(onResults);
+
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480, facingMode:'user' } });
+    video.srcObject = stream;
+    await video.play();
+
+    const cam = new Camera(video, {
+      onFrame: async () => { await hands.send({ image: video }); },
+      width: 640, height: 480
+    });
+    await cam.start();
+
+    dot.classList.add('active');
+    statusText.textContent = 'TRACKING ACTIVE';
+    overlayText.innerHTML = 'SHOW YOUR HANDS';
+    startBtn.textContent = '⬡ LIVE';
+
+  } catch(err) {
+    console.error(err);
+    startBtn.textContent = '⬡ RETRY';
+    startBtn.disabled = false;
+    cameraStarted = false;
+    overlayText.innerHTML = 'ERROR: CAMERA<br>ACCESS DENIED';
+    statusText.textContent = 'OFFLINE';
+  }
+}
+
+startBtn.addEventListener('click', startCamera);
+</script>
+
+</body>
+</html>

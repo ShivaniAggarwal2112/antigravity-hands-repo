@@ -315,39 +315,54 @@ function getColor(style, i, total, t) {
   return c[i % c.length];
 }
 
-function drawHand(lms, style, t) {
+function drawConnections(lms, style, t) {
   const s = STYLES[style];
   const w = canvas.width, h = canvas.height;
-
   CONNECTIONS.forEach(([a,b], i) => {
     const x1=lms[a].x*w, y1=lms[a].y*h;
     const x2=lms[b].x*w, y2=lms[b].y*h;
     const col = getColor(style, i, CONNECTIONS.length, t);
+    // Outer glow pass
     ctx.save();
     ctx.shadowColor = col;
     ctx.shadowBlur = s.glow;
     ctx.strokeStyle = col;
-    ctx.lineWidth = s.lw;
+    ctx.lineWidth = s.lw + 2;
     ctx.lineCap = 'round';
+    ctx.globalAlpha = 0.5;
     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-    ctx.globalAlpha = 0.4;
-    ctx.shadowBlur = s.glow * 0.4;
-    ctx.lineWidth = s.lw * 0.5;
+    // Bright core line
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = s.glow * 0.6;
+    ctx.lineWidth = s.lw;
     ctx.stroke();
     ctx.restore();
   });
+}
 
+function drawDots(lms, style) {
+  const s = STYLES[style];
+  const w = canvas.width, h = canvas.height;
   lms.forEach((lm, i) => {
     const x=lm.x*w, y=lm.y*h;
-    const r = [0,5,9,13,17].includes(i) ? 8 : 5;
+    const isKnuckle = [0,5,9,13,17].includes(i);
+    const r = isKnuckle ? 9 : 6;
+    // Glow halo
     ctx.save();
     ctx.shadowColor = s.pointColor;
-    ctx.shadowBlur = 16;
+    ctx.shadowBlur = 25;
     ctx.fillStyle = s.pointColor;
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath(); ctx.arc(x,y,r+4,0,Math.PI*2); ctx.fill();
+    // Solid dot
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 15;
     ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
     ctx.restore();
   });
 }
+
+let canvasSized = false;
 
 function onResults(results) {
   const now = performance.now();
@@ -355,17 +370,24 @@ function onResults(results) {
   lastFrameTime = now;
   fpsEl.textContent = fps;
 
-  canvas.width = video.videoWidth || 640;
-  canvas.height = video.videoHeight || 480;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // Only size canvas ONCE — resetting width/height clears the context
+  if (!canvasSized && video.videoWidth > 0) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvasSized = true;
+  }
 
-  // No dark overlay — show the real camera feed clearly
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const hands = results.multiHandLandmarks || [];
   handCountEl.textContent = hands.length;
 
   const t = now / 1000;
-  hands.forEach(lms => drawHand(lms, currentStyle, t));
+  // Draw connections first, dots on top
+  hands.forEach(lms => {
+    drawConnections(lms, currentStyle, t);
+    drawDots(lms, currentStyle);
+  });
 
   overlayText.innerHTML = `HANDS: ${hands.length} &nbsp;·&nbsp; FPS: ${fps}`;
 }

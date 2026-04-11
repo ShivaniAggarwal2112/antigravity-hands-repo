@@ -96,7 +96,7 @@ width: 100%;
 height: 100%;
 object-fit: cover;
 transform: scaleX(-1);
-opacity: 0;
+opacity: 1;
 }
 
 canvas#output {
@@ -105,6 +105,7 @@ inset: 0;
 width: 100%;
 height: 100%;
 transform: scaleX(-1);
+opacity: 0.92;
 }
 
 .overlay-text {
@@ -293,10 +294,10 @@ const CONNECTIONS = [
 ];
 
 const STYLES = {
-  neon:    { connColors: ['#ff2d78','#00f5ff','#bf00ff','#39ff14','#ffe000'], pointColor: '#ffffff', glow: 18, lw: 2.5 },
-  rainbow: { connColors: null, pointColor: '#fff', glow: 14, lw: 2 },
-  cyber:   { connColors: ['#00f5ff'], pointColor: '#00f5ff', glow: 28, lw: 1.5 },
-  ghost:   { connColors: ['rgba(200,220,255,0.55)'], pointColor: 'rgba(255,255,255,0.85)', glow: 8, lw: 1.2 }
+  neon:    { connColors: ['#ff2d78','#00f5ff','#bf00ff','#39ff14','#ffe000'], pointColor: '#ffffff', glow: 30, lw: 4 },
+  rainbow: { connColors: null, pointColor: '#fff', glow: 25, lw: 3.5 },
+  cyber:   { connColors: ['#00f5ff'], pointColor: '#00f5ff', glow: 40, lw: 3 },
+  ghost:   { connColors: ['rgba(220,240,255,0.9)'], pointColor: 'rgba(255,255,255,1)', glow: 20, lw: 2.5 }
 };
 
 function setStyle(s, btn) {
@@ -338,7 +339,7 @@ function drawHand(lms, style, t) {
 
   lms.forEach((lm, i) => {
     const x=lm.x*w, y=lm.y*h;
-    const r = [0,5,9,13,17].includes(i) ? 5 : 3;
+    const r = [0,5,9,13,17].includes(i) ? 8 : 5;
     ctx.save();
     ctx.shadowColor = s.pointColor;
     ctx.shadowBlur = 16;
@@ -358,8 +359,7 @@ function onResults(results) {
   canvas.height = video.videoHeight || 480;
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.fillStyle = 'rgba(5,5,16,0.5)';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  // No dark overlay — show the real camera feed clearly
 
   const hands = results.multiHandLandmarks || [];
   handCountEl.textContent = hands.length;
